@@ -7,7 +7,7 @@ interface SideBarProps {
 
 export const SideBar = ({ onOpenSettings }: SideBarProps) => {
   return (
-    <div className="min-w-[250px] bg-gray-900 text-white flex flex-col">
+    <div className="max-w-[400px] lg:max-w-none bg-gray-900 text-white flex flex-col">
       <AccountDetails onOpenSettings={onOpenSettings} />
       <Messages />
     </div>
