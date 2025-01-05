@@ -16,7 +16,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="flex h-screen">
-        <div className={`hidden md:flex min-w-[250px]`}>
+        <div className={`hidden md:flex`}>
           <SideBar onOpenSettings={() => setSettingsOpen(true)} />
         </div>
         <div
