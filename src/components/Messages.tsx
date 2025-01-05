@@ -3,7 +3,11 @@ import { useEffect, useState } from "react";
 import { getMessages } from "../services/getMessages";
 import { Message } from "../types/Message";
 
-export const Messages = () => {
+interface MessagesProps {
+  onSelectConversation: (conversation: Message) => void;
+}
+
+export const Messages = ({ onSelectConversation }: MessagesProps) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,9 +32,13 @@ export const Messages = () => {
         ) : messages.length === 0 ? (
           <p className="text-center text-gray-500">No messages available.</p>
         ) : (
-          <div className="bg-gray-700 p-2 space-y-8">
+          <div className="bg-gray-700">
             {messages.map((message) => (
-              <div key={message.id} className="flex gap-2 items-center mb-1">
+              <div
+                key={message.id}
+                className="flex gap-2 py-4 items-center px-2 cursor-pointer hover:bg-gray-600 transition-colors duration-100"
+                onClick={() => onSelectConversation(message)}
+              >
                 <span className="p-1 border-2 border-customPink rounded-full">
                   <div className="rounded-full border-2 border-customGray flex items-center justify-center">
                     <PersonOutlineRoundedIcon

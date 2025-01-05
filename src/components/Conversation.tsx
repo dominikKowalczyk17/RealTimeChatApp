@@ -1,9 +1,14 @@
 import { Chat } from "./Chat";
+import { Message } from "../types/Message";
 
-export const Conversation = () => {
+interface ConversationProps {
+  conversation: Message;
+}
+
+export const Conversation = ({ conversation }: ConversationProps) => {
   return (
     <div className="flex-1 p-4 bg-gray-700 text-white">
-      <Chat messages={[]} currentUser="user" />
+      <Chat messages={[conversation]} currentUser="user" />
     </div>
   );
 };
