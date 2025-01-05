@@ -1,10 +1,14 @@
 import { AccountDetails } from "./AccountDetails";
 import { Messages } from "./Messages";
 
-export const SideBar = () => {
+interface SideBarProps {
+  onOpenSettings: () => void;
+}
+
+export const SideBar = ({ onOpenSettings }: SideBarProps) => {
   return (
     <div>
-      <AccountDetails />
+      <AccountDetails onOpenSettings={onOpenSettings} />
       <Messages />
     </div>
   );
