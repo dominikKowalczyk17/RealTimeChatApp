@@ -13,6 +13,9 @@ module.exports = {
         customGray: "#777777",
         customPink: "#B79595",
       },
+      textColor: {
+        customGray: "#777777",
+      },
     },
   },
   plugins: [],
