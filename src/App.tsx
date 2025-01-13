@@ -1,4 +1,4 @@
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import { SideBar } from "./components/SideBar";
 import { Settings } from "./components/Settings";
 import { Conversation } from "./components/Conversation";
@@ -9,16 +9,33 @@ import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
+import Login from "./components/Login";
+import AdminPage from "./components/AdminPage";
+import UserPage from "./components/UserPage";
 
 function App() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [showConversation, setShowConversation] = useState(true);
   const [selectedConversation, setSelectedConversation] =
     useState<Message | null>(null);
+  const [userRoles, setUserRoles] = useState<string[]>([]);
+
+  const handleLogin = (roles: string[]) => {
+    setUserRoles(roles);
+  };
 
   return (
     <BrowserRouter>
       <div className="flex h-screen">
+        <Routes>
+          <Route path="/" element={<Login onLogin={handleLogin} />} />
+          <Route
+            path="/home"
+            element={
+              userRoles.includes("ROLE_ADMIN") ? <AdminPage /> : <UserPage />
+            }
+          />
+        </Routes>
         <div className={`hidden md:flex`}>
           <SideBar
             onOpenSettings={() => setSettingsOpen(true)}
