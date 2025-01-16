@@ -1,64 +1,65 @@
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import { SideBar } from "./components/SideBar";
-import { Settings } from "./components/Settings";
-import { Conversation } from "./components/Conversation";
-import { ConversationDetails } from "./components/ConversationDetails";
-import { useState } from "react";
+import HomePage from "./pages/HomePage";
+import ChatPage from "./pages/ChatPage";
+import RegisterPage from "./pages/RegisterPage";
 import { Message } from "./types/Message";
+import { getMessages } from "./services/getMessages";
 import "@fontsource/roboto/300.css";
 import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
-import Login from "./components/Login";
-import AdminPage from "./components/AdminPage";
-import UserPage from "./components/UserPage";
+import { useState, useEffect } from "react";
+import "./config/axiosConfig"; // jeśli interceptory są w osobnym pliku
+import { Navigate } from "react-router-dom";
+
+interface PrivateRouteProps {
+  children: React.ReactElement;
+}
+
+const PrivateRoute = ({ children }: PrivateRouteProps) => {
+  const token = localStorage.getItem("token");
+
+  if (!token) {
+    return <Navigate to="/" />;
+  }
+
+  return children;
+};
 
 function App() {
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [showConversation, setShowConversation] = useState(true);
-  const [selectedConversation, setSelectedConversation] =
+  // const [userRoles, setUserRoles] = useState<string[]>([]);
+  const [initialConversation, setInitialConversation] =
     useState<Message | null>(null);
-  const [userRoles, setUserRoles] = useState<string[]>([]);
 
-  const handleLogin = (roles: string[]) => {
-    setUserRoles(roles);
-  };
+  // const handleLogin = (roles: string[]) => {
+  //   // setUserRoles(roles);
+  // };
+
+  useEffect(() => {
+    const fetchInitialConversation = async () => {
+      const messages = await getMessages();
+      if (messages.length > 0) {
+        setInitialConversation(messages[0]);
+      }
+    };
+
+    fetchInitialConversation();
+  }, []);
 
   return (
     <BrowserRouter>
-      <div className="flex h-screen">
-        <Routes>
-          <Route path="/" element={<Login onLogin={handleLogin} />} />
-          <Route
-            path="/home"
-            element={
-              userRoles.includes("ROLE_ADMIN") ? <AdminPage /> : <UserPage />
-            }
-          />
-        </Routes>
-        <div className={`hidden md:flex`}>
-          <SideBar
-            onOpenSettings={() => setSettingsOpen(true)}
-            onSelectConversation={setSelectedConversation}
-          />
-        </div>
-        <div
-          className={`flex flex-col flex-1 ${
-            showConversation ? "block" : "hidden"
-          } md:flex md:flex-col md:flex-1`}
-        >
-          {selectedConversation && (
-            <>
-              <ConversationDetails
-                onBack={() => setShowConversation(false)}
-                conversation={selectedConversation}
-              />
-              <Conversation conversation={selectedConversation} />
-            </>
-          )}
-        </div>
-      </div>
-      <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/chat"
+          element={
+            <PrivateRoute>
+              <ChatPage initialConversation={initialConversation} />
+            </PrivateRoute>
+          }
+        />
+      </Routes>
     </BrowserRouter>
   );
 }

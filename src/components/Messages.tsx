@@ -1,20 +1,20 @@
 import PersonOutlineRoundedIcon from "@mui/icons-material/PersonOutlineRounded";
 import { useEffect, useState } from "react";
-import { getMessages } from "../services/getMessages";
 import { Message } from "../types/Message";
+import { getMessages } from "../services/getMessages";
 
 interface MessagesProps {
   onSelectConversation: (conversation: Message) => void;
 }
 
 export const Messages = ({ onSelectConversation }: MessagesProps) => {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [messages, setMessages] = useState<Message[]>([]);
 
   useEffect(() => {
     const fetchMessages = async () => {
-      const fetchedMessages = await getMessages();
-      setMessages(fetchedMessages);
+      const loadedMessages = await getMessages();
+      setMessages(loadedMessages);
       setLoading(false);
     };
 
