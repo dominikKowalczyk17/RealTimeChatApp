@@ -32,12 +32,24 @@ const RegisterPage = () => {
         username,
         password,
       });
-      setSuccess("Rejestracja zakończona sukcesem!");
-      setTimeout(() => {
-        navigate("/chat");
-      }, 2000);
+
+      if (response.token) {
+        setSuccess("Rejestracja zakończona sukcesem!");
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      } else {
+        setError("Rejestracja nie powiodła się. Brak tokenu autoryzacji.");
+      }
     } catch (error) {
-      setError("Rejestracja nie powiodła się. Spróbuj ponownie.");
+      if (axios.isAxiosError(error)) {
+        setError(
+          error.response?.data?.message ||
+            "Rejestracja nie powiodła się. Spróbuj ponownie.",
+        );
+      } else {
+        setError("Rejestracja nie powiodła się. Spróbuj ponownie.");
+      }
     }
   };
 

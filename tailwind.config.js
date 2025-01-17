@@ -8,9 +8,10 @@ module.exports = {
       },
       backgroundColor: {
         account: "#EEF0F2",
+        customGrayHover: "#202c33",
       },
       borderColor: {
-        customGray: "#777777",
+        customGray: "rgba(134, 150, 160, 0.15)",
         customPink: "#B79595",
       },
       textColor: {

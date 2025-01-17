@@ -9,7 +9,7 @@ import "@fontsource/roboto/400.css";
 import "@fontsource/roboto/500.css";
 import "@fontsource/roboto/700.css";
 import { useState, useEffect } from "react";
-import "./config/axiosConfig"; // jeśli interceptory są w osobnym pliku
+import "./config/axiosConfig";
 import { Navigate } from "react-router-dom";
 
 interface PrivateRouteProps {

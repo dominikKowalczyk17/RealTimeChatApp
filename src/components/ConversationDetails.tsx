@@ -12,7 +12,7 @@ export const ConversationDetails = ({
   conversation,
 }: ConversationDetailsProps) => {
   return (
-    <div className="p-4 bg-gray-800 text-white flex items-center">
+    <div className="py-3 px-4 bg-gray-800 text-white flex items-center">
       <div className="items-center flex md:hidden">
         <ArrowBackIcon className="mr-2 cursor-pointer" onClick={onBack} />
       </div>

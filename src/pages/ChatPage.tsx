@@ -2,6 +2,9 @@ import { SideBar } from "../components/SideBar";
 import { Settings } from "../components/Settings";
 import { Conversation } from "../components/Conversation";
 import { ConversationDetails } from "../components/ConversationDetails";
+import { Messages } from "../components/Messages";
+import StatusSettings from "../components/StatusSettings";
+import ProfileSettings from "../components/ProfileSettings";
 import { useState, useEffect } from "react";
 import { Message } from "../types/Message";
 import { useNavigate } from "react-router-dom";
@@ -16,6 +19,7 @@ const ChatPage = ({ initialConversation }: ChatPageProps) => {
   const [showConversation, setShowConversation] = useState(true);
   const [selectedConversation, setSelectedConversation] =
     useState<Message | null>(initialConversation);
+  const [view, setView] = useState("chats");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -37,34 +41,48 @@ const ChatPage = ({ initialConversation }: ChatPageProps) => {
     }
   };
 
+  const handleSelectChats = () => setView("chats");
+  const handleSelectStatus = () => setView("status");
+  const handleSelectProfile = () => setView("profile");
+
   return (
     <div className="flex h-screen">
       <SideBar
         onOpenSettings={() => setSettingsOpen(true)}
         onSelectConversation={setSelectedConversation}
+        onSelectChats={handleSelectChats}
+        onSelectStatus={handleSelectStatus}
+        onSelectProfile={handleSelectProfile}
+        onChangeView={setView}
       />
       <div
-        className={`flex flex-col flex-1 ${
+        className={`flex ${
           showConversation ? "block" : "hidden"
-        } md:flex md:flex-col md:flex-1`}
+        } md:flex md:flex-col md:flex-1 bg-gray-700`}
       >
-        {selectedConversation && (
-          <>
-            <ConversationDetails
-              onBack={() => setShowConversation(false)}
-              conversation={selectedConversation}
+        {view === "chats" && selectedConversation && (
+          <div className="flex flex-1">
+            <Messages
+              onSelectConversation={setSelectedConversation}
+              onChangeView={setView}
             />
-            <Conversation conversation={selectedConversation} />
-          </>
+            <div className="flex flex-col flex-1">
+              <ConversationDetails
+                onBack={() => setShowConversation(false)}
+                conversation={selectedConversation}
+              />
+              <Conversation conversation={selectedConversation} />
+            </div>
+          </div>
         )}
+        {view === "status" && (
+          <div className="flex flex-1">
+            <StatusSettings />
+          </div>
+        )}
+        {view === "profile" && <ProfileSettings />}
       </div>
       <Settings open={settingsOpen} onClose={() => setSettingsOpen(false)} />
-      {/* <button
-        onClick={handleLogout}
-        className="bg-red-600 text-white py-3 w-full text-xl shadow-lg rounded hover:bg-red-700 transition duration-200 mt-4"
-      >
-        Wyloguj się
-      </button> */}
     </div>
   );
 };
