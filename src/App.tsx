@@ -11,6 +11,7 @@ import "@fontsource/roboto/700.css";
 import { useState, useEffect } from "react";
 import "./config/axiosConfig";
 import { Navigate } from "react-router-dom";
+import { authService } from "./services/authService";
 
 interface PrivateRouteProps {
   children: React.ReactElement;
@@ -27,13 +28,8 @@ const PrivateRoute = ({ children }: PrivateRouteProps) => {
 };
 
 function App() {
-  // const [userRoles, setUserRoles] = useState<string[]>([]);
   const [initialConversation, setInitialConversation] =
     useState<Message | null>(null);
-
-  // const handleLogin = (roles: string[]) => {
-  //   // setUserRoles(roles);
-  // };
 
   useEffect(() => {
     const fetchInitialConversation = async () => {
@@ -45,6 +41,20 @@ function App() {
 
     fetchInitialConversation();
   }, []);
+
+  useEffect(() => {
+    const shouldAutoLogin = () => {
+      const token = localStorage.getItem("token");
+      const persistentToken = localStorage.getItem("persistentToken");
+      return !token && persistentToken; // Wykonuj auto-login tylko gdy nie ma tokenu, ale jest persistent token
+    };
+
+    if (shouldAutoLogin()) {
+      authService.autoLogin().catch((error) => {
+        console.error("Auto login failed:", error);
+      });
+    }
+  }, []); // Wykonaj tylko raz przy montowaniu komponentu
 
   return (
     <BrowserRouter>

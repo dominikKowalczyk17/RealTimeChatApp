@@ -13,6 +13,9 @@ interface LoginResponse {
     lastSeen: string;
   };
 }
+interface RefreshTokenResponse {
+  token: string;
+}
 
 const axiosInstance = axios.create({
   baseURL: API_URL,
@@ -20,6 +23,17 @@ const axiosInstance = axios.create({
     "Content-Type": "application/json",
   },
 });
+
+axiosInstance.interceptors.request.use(
+  async (config) => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers["Authorization"] = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error),
+);
 
 axiosInstance.interceptors.response.use(
   (response) => response,
@@ -31,9 +45,12 @@ axiosInstance.interceptors.response.use(
 
       try {
         const refreshToken = localStorage.getItem("refreshToken");
-        const response = await axios.post(`${API_URL}/api/auth/refresh`, {
-          refreshToken: refreshToken,
-        });
+        const response = await axios.post<RefreshTokenResponse>(
+          `${API_URL}/refresh`,
+          {
+            refreshToken: refreshToken,
+          },
+        );
 
         const newToken = response.data.token;
         localStorage.setItem("token", newToken);
@@ -65,15 +82,44 @@ export const authService = {
       localStorage.setItem("token", response.data.token);
       localStorage.setItem("refreshToken", response.data.refreshToken);
       localStorage.setItem("user", JSON.stringify(response.data.user));
+      // Zapisz persistent token
+      localStorage.setItem("persistentToken", response.data.refreshToken);
     }
 
     return response.data;
   },
 
+  autoLogin: async () => {
+    const persistentToken = localStorage.getItem("persistentToken");
+    if (!persistentToken) {
+      throw new Error("No persistent token found");
+    }
+
+    try {
+      const response = await axios.post<LoginResponse>(
+        `${API_URL}/auto-login`,
+        {
+          refreshToken: persistentToken,
+        },
+      );
+
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("refreshToken", response.data.refreshToken);
+        localStorage.setItem("user", JSON.stringify(response.data.user.email));
+      }
+
+      return response.data;
+    } catch (error) {
+      localStorage.clear();
+      throw error;
+    }
+  },
+
   logout: async (token: string) => {
     if (token) {
       try {
-        await axiosInstance.post("/api/auth/logout", null, {
+        await axiosInstance.post("/logout", null, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -109,5 +155,41 @@ export const authService = {
     }
 
     return response.data;
+  },
+
+  // Dodana metoda refreshToken
+  refreshToken: async (refreshToken: string) => {
+    try {
+      const response = await axios.post<RefreshTokenResponse>(
+        `${API_URL}/refresh`,
+        {
+          refreshToken,
+        },
+      );
+
+      const newToken = response.data.token;
+      localStorage.setItem("token", newToken);
+
+      return newToken;
+    } catch (error) {
+      console.error("Token refresh error:", error);
+      throw error;
+    }
+  },
+
+  // Pomocnicza metoda do sprawdzania czy token wygasł
+  isTokenExpired: (token: string): boolean => {
+    if (!token) return true;
+
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      const expirationTime = payload.exp * 1000; // konwersja na milisekundy
+      const currentTime = Date.now();
+
+      // Dodajemy 5-minutowy bufor
+      return currentTime >= expirationTime - 5 * 60 * 1000;
+    } catch {
+      return true;
+    }
   },
 };

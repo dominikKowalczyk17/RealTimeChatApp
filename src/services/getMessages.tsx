@@ -42,8 +42,6 @@ export const getMessages = async (): Promise<Message[]> => {
   ];
 
   return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(mockMessages);
-    }, 500); // Simulate network delay
+    resolve(mockMessages);
   });
 };

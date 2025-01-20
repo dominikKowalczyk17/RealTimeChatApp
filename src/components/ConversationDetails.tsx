@@ -1,21 +1,25 @@
-import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import Avatar from "../assets/Avatar.png";
+import ArrowBackIcon from "../icons/ArrowBackIcon";
 import { Message } from "../types/Message";
 
 interface ConversationDetailsProps {
-  onBack: () => void;
   conversation: Message;
+  showBackButton?: boolean;
+  onBack?: () => void;
 }
 
 export const ConversationDetails = ({
-  onBack,
   conversation,
+  showBackButton,
+  onBack,
 }: ConversationDetailsProps) => {
   return (
     <div className="py-3 px-4 bg-gray-800 text-white flex items-center">
-      <div className="items-center flex md:hidden">
-        <ArrowBackIcon className="mr-2 cursor-pointer" onClick={onBack} />
-      </div>
+      {showBackButton && (
+        <div className="items-center flex md:hidden">
+          <ArrowBackIcon className="mr-2 cursor-pointer" onClick={onBack} />
+        </div>
+      )}
       <img
         src={Avatar}
         alt="User Avatar"

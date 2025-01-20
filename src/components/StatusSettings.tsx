@@ -4,7 +4,7 @@ const StatusSettings = () => {
   const userString = localStorage.getItem("user");
   const user = userString ? JSON.parse(userString) : null;
   return (
-    <div className="flex flex-col border-1 border-customGray overflow-hidden bg-gray-800 min-w-[303px]">
+    <div className="flex flex-col border-1 border-customGray overflow-hidden bg-gray-800 min-w-full">
       <div className="flex gap-10 p-4 justify-between">
         <span className="text-xl font-bold text-white">Status</span>
       </div>

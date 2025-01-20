@@ -7,38 +7,41 @@ import StatusSettings from "../components/StatusSettings";
 import ProfileSettings from "../components/ProfileSettings";
 import { useState, useEffect } from "react";
 import { Message } from "../types/Message";
-import { useNavigate } from "react-router-dom";
-import { authService } from "../services/authService";
+import { useWindowSize } from "../hooks/useWindowSize";
 
 interface ChatPageProps {
   initialConversation: Message | null;
 }
 
 const ChatPage = ({ initialConversation }: ChatPageProps) => {
+  const { width } = useWindowSize();
+  const isMobile = width < 640;
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [showConversation, setShowConversation] = useState(true);
   const [selectedConversation, setSelectedConversation] =
     useState<Message | null>(initialConversation);
   const [view, setView] = useState("chats");
-  const navigate = useNavigate();
+  const [isMobileConversationView, setIsMobileConversationView] =
+    useState(false);
+
+  useEffect(() => {
+    if (!isMobile) {
+      setIsMobileConversationView(false);
+    }
+  }, [isMobile]);
 
   useEffect(() => {
     setSelectedConversation(initialConversation);
   }, [initialConversation]);
 
-  const handleLogout = async () => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        await authService.logout(token);
-        navigate("/");
-      } catch (error) {
-        console.error("Logout failed:", error);
-        navigate("/");
-      }
-    } else {
-      navigate("/");
+  const handleSelectConversation = (conversation: Message) => {
+    setSelectedConversation(conversation);
+    if (isMobile) {
+      setIsMobileConversationView(true);
     }
+  };
+
+  const handleBackToMessages = () => {
+    setIsMobileConversationView(false);
   };
 
   const handleSelectChats = () => setView("chats");
@@ -49,30 +52,32 @@ const ChatPage = ({ initialConversation }: ChatPageProps) => {
     <div className="flex h-screen">
       <SideBar
         onOpenSettings={() => setSettingsOpen(true)}
-        onSelectConversation={setSelectedConversation}
+        onSelectConversation={handleSelectConversation}
         onSelectChats={handleSelectChats}
         onSelectStatus={handleSelectStatus}
         onSelectProfile={handleSelectProfile}
         onChangeView={setView}
       />
-      <div
-        className={`flex ${
-          showConversation ? "block" : "hidden"
-        } md:flex md:flex-col md:flex-1 bg-gray-700`}
-      >
-        {view === "chats" && selectedConversation && (
+      <div className={`flex flex-1 md:flex-col bg-gray-700`}>
+        {view === "chats" && (
           <div className="flex flex-1">
-            <Messages
-              onSelectConversation={setSelectedConversation}
-              onChangeView={setView}
-            />
-            <div className="flex flex-col flex-1">
-              <ConversationDetails
-                onBack={() => setShowConversation(false)}
-                conversation={selectedConversation}
+            {(!isMobileConversationView || !isMobile) && (
+              <Messages
+                onSelectConversation={handleSelectConversation}
+                onChangeView={setView}
               />
-              <Conversation conversation={selectedConversation} />
-            </div>
+            )}
+            {selectedConversation &&
+              (isMobileConversationView || !isMobile) && (
+                <div className="flex flex-col flex-1">
+                  <ConversationDetails
+                    conversation={selectedConversation}
+                    showBackButton={isMobile}
+                    onBack={handleBackToMessages}
+                  />
+                  <Conversation conversation={selectedConversation} />
+                </div>
+              )}
           </div>
         )}
         {view === "status" && (
