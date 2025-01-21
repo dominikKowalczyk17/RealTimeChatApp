@@ -1,77 +1,62 @@
+import { lazy, Suspense, useEffect } from 'react';
 import { BrowserRouter, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
-import ChatPage from "./pages/ChatPage";
 import RegisterPage from "./pages/RegisterPage";
-import { Message } from "./types/Message";
-import { getMessages } from "./services/getMessages";
-import "@fontsource/roboto/300.css";
-import "@fontsource/roboto/400.css";
-import "@fontsource/roboto/500.css";
-import "@fontsource/roboto/700.css";
-import { useState, useEffect } from "react";
-import "./config/axiosConfig";
-import { Navigate } from "react-router-dom";
 import { authService } from "./services/authService";
+import PrivateRoute from "./routes/PrivateRoute";
+import AuthRoute from "./routes/AuthRoute";
 
-interface PrivateRouteProps {
-  children: React.ReactElement;
-}
+const ChatPage = lazy(() => import("./pages/ChatPage"));
 
-const PrivateRoute = ({ children }: PrivateRouteProps) => {
-  const token = localStorage.getItem("token");
-
-  if (!token) {
-    return <Navigate to="/" />;
-  }
-
-  return children;
-};
+const LoadingComponent = () => (
+    <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
+            <p className="mt-4">Ładowanie strony chatu...</p>
+        </div>
+    </div>
+);
 
 function App() {
-  const [initialConversation, setInitialConversation] =
-    useState<Message | null>(null);
+    useEffect(() => {
+        const shouldAutoLogin = () => {
+            const token = localStorage.getItem("token");
+            const persistentToken = localStorage.getItem("persistentToken");
+            return !token && persistentToken;
+        };
 
-  useEffect(() => {
-    const fetchInitialConversation = async () => {
-      const messages = await getMessages();
-      if (messages.length > 0) {
-        setInitialConversation(messages[0]);
-      }
-    };
+        if (shouldAutoLogin()) {
+            authService.autoLogin().catch((error) => {
+                console.error("Auto login failed:", error);
+            });
+        }
+    }, []);
 
-    fetchInitialConversation();
-  }, []);
-
-  useEffect(() => {
-    const shouldAutoLogin = () => {
-      const token = localStorage.getItem("token");
-      const persistentToken = localStorage.getItem("persistentToken");
-      return !token && persistentToken; // Wykonuj auto-login tylko gdy nie ma tokenu, ale jest persistent token
-    };
-
-    if (shouldAutoLogin()) {
-      authService.autoLogin().catch((error) => {
-        console.error("Auto login failed:", error);
-      });
-    }
-  }, []); // Wykonaj tylko raz przy montowaniu komponentu
-
-  return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route path="/register" element={<RegisterPage />} />
-        <Route
-          path="/chat"
-          element={
-            <PrivateRoute>
-              <ChatPage initialConversation={initialConversation} />
-            </PrivateRoute>
-          }
-        />
-      </Routes>
-    </BrowserRouter>
-  );
+    return (
+        <BrowserRouter>
+            <Routes>
+                <Route
+                    path="/"
+                    element={
+                        <AuthRoute>
+                            <HomePage />
+                        </AuthRoute>
+                    }
+                />
+                <Route path="/register" element={<RegisterPage />} />
+                <Route
+                    path="/chat"
+                    element={
+                        <PrivateRoute>
+                            <Suspense fallback={<LoadingComponent />}>
+                                <ChatPage initialConversation={null} />
+                            </Suspense>
+                        </PrivateRoute>
+                    }
+                />
+            </Routes>
+        </BrowserRouter>
+    );
 }
 
 export default App;

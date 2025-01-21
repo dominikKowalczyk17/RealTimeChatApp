@@ -192,4 +192,32 @@ export const authService = {
       return true;
     }
   },
+
+  validateSession: async () => {
+    const token = localStorage.getItem('token');
+    const refreshToken = localStorage.getItem('refreshToken');
+
+    if (!token || !refreshToken) {
+      throw new Error('No valid session found');
+    }
+
+    if (authService.isTokenExpired(token)) {
+      // Try to refresh the token
+      await authService.refreshToken(refreshToken);
+    }
+
+    return true;
+  },
+
+  clearAuthData: () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    localStorage.removeItem('persistentToken');
+  },
+
+  getAuthHeaders: () => {
+    const token = localStorage.getItem('token');
+    return token ? { Authorization: `Bearer ${token}` } : {};
+  }
 };
